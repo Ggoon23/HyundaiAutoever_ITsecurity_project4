@@ -1467,11 +1467,6 @@ resource "aws_sns_topic_subscription" "security_email" {
 
 ### RDS Credentials
 ```hcl
-resource "random_password" "rds" {
-  length  = 32
-  special = true
-}
-
 resource "aws_secretsmanager_secret" "rds_credentials" {
   name                    = "ota/rds/credentials"
   recovery_window_in_days = 7
@@ -1487,16 +1482,6 @@ resource "aws_secretsmanager_secret_version" "rds_credentials" {
     port     = var.db_instance_port
     dbname   = "ota_db"
   })
-}
-
-# 30일 자동 로테이션
-resource "aws_secretsmanager_secret_rotation" "rds" {
-  secret_id           = aws_secretsmanager_secret.rds_credentials.id
-  rotation_lambda_arn = aws_lambda_function.rotate_secret.arn
-
-  rotation_rules {
-    automatically_after_days = 30
-  }
 }
 ```
 

@@ -7,11 +7,11 @@
 ✅ Public/Private Route Table 분리
 ✅ S3 VPC Endpoint (Gateway) 생성 및 연결
 
-📋 2. Security Groups 모듈 
+📋 2. Security Groups 모듈
 ✅ ALB SG: 80/443 포트 인바운드, VPC 내부로만 아웃바운드
 ✅ EC2 SG: ALB로부터만 80/443, SSH(22) 관리자 IP 제한
-✅ RDS SG: EC2와 Lambda로부터만 5432 포트 허용
-✅ Lambda SG: RDS로 5432, AWS API용 443 아웃바운드
+✅ RDS SG: EC2와 Lambda로부터만 3306 포트 허용
+✅ Lambda SG: RDS로 3306, AWS API용 443 아웃바운드
 ✅ 순환 참조 방지를 위한 별도 규칙 정의
 
 📋 3. IAM 모듈 
@@ -29,23 +29,27 @@
 ✅ Bucket Policy: HTTPS 전송 강제
 ✅ Uptane 폴더 구조 생성 (image-repo, director-repo, certificates, public-keys)
 
-📋 5. RDS 모듈 
-✅ PostgreSQL 15.4, db.t3.micro
+📋 5. RDS 모듈
+✅ MySQL 8.0.42, db.t3.micro
 ✅ 암호화 저장소 (storage_encrypted)
 ✅ Multi-AZ: false (비용 절감)
 ✅ 백업 보존: 3일
-✅ CloudWatch Logs 내보내기
-✅ Final Snapshot 생성
-✅ 랜덤 비밀번호 자동 생성
+✅ CloudWatch Logs 내보내기 (error, general, slowquery)
+✅ skip_final_snapshot = true (빠른 삭제)
+✅ 고정 credential: admin/password
+✅ Parameter Group: UTF8MB4, max_connections=100
 
-📋 6. EC2 모듈 
+📋 6. EC2 모듈
 ✅ Amazon Linux 2023 AMI 사용
 ✅ t2.micro 인스턴스
+✅ Key Pair: project4 (SSH 접속용)
 ✅ Launch Template + Auto Scaling Group
 ✅ Min: 1, Max: 2, Desired: 1
 ✅ ELB Health Check (300초 grace period)
 ✅ Target Tracking Policy (CPU 70%)
 ✅ User Data 스크립트 템플릿 적용
+✅ MySQL 클라이언트 자동 설치
+✅ RDS 연결 대기 (최대 10분) 및 init-db.sql 자동 실행
 
 📋 7. ALB 모듈 
 ✅ Application Load Balancer (Public)
@@ -54,17 +58,18 @@
 ✅ HTTPS Listener (certificate_arn 조건부)
 ✅ Path-based routing: /firmware/, /metadata/, /vehicle/, /deploy/
 
-📋 8. Lambda 모듈 
+📋 8. Lambda 모듈
 ✅ Python 3.11 런타임
 ✅ VPC 내부 배치 (Private Subnet)
+✅ pymysql 사용 (MySQL 연결)
 ✅ Canary 배포 Phase 제어 로직
 ✅ 성공률 95% 기준 자동 Phase 전환
 ✅ 실패 시 SNS 알림 및 배포 중단
 ✅ EventBridge Rule: 5분 간격 실행
 ✅ Audit Log 기록
 
-📋 9. CloudWatch 모듈 
-✅ Log Groups: EC2, ALB, RDS, Lambda (14일 보존)
+📋 9. CloudWatch 모듈
+✅ Log Groups: EC2, ALB, RDS (/aws/rds/instance/ota-mysql/error), Lambda (14일 보존)
 ✅ EC2 Alarms: CPU 80%, Status Check
 ✅ ALB Alarms: Unhealthy Hosts, Response Time 2초, 5xx Errors
 ✅ RDS Alarms: CPU 80%, Storage 2GB, Connections 50
@@ -86,16 +91,17 @@ RDS 변경 (DeleteDBInstance, ModifyDBInstance)
 ✅ ota-cloudtrail-alerts 토픽 (보안 알림)
 ✅ 이메일 구독: xogoon1325@gmail.com
 
-📋 12. Secrets Manager 모듈 
+📋 12. Secrets Manager 모듈
 ✅ RDS 자격증명 저장 (ota/rds/credentials)
+✅ 고정 credential: admin/password, engine=mysql
 ✅ Vendor B API Key 저장 (ota/api-keys/vendor-b)
 ✅ 7일 복구 기간
 ✅ JSON 형식으로 구조화된 시크릿
 
-📋 13. Scripts 
-✅ user-data.sh: Docker 설치, Secrets Manager 연동, nginx 컨테이너 실행, /health 엔드포인트
-✅ init-db.sql: 모든 테이블 정의 (vehicles, firmware_metadata, deployment_history, canary_deployments, audit_logs 등 10개 테이블)
-✅ 인덱스 생성
+📋 13. Scripts
+✅ user-data.sh: Docker 설치, MySQL 클라이언트 설치, Secrets Manager 연동, nginx 컨테이너 실행, /health 엔드포인트
+✅ user-data.sh: RDS 연결 대기 로직 (최대 10분), init-db.sql 자동 실행
+✅ init-db.sql: 비어있음 (사용자가 직접 테이블 생성)
 
 📋 14. Root Files
 ✅ main.tf: 모든 모듈 호출 및 의존성 올바르게 연결
@@ -246,11 +252,11 @@ aws secretsmanager get-secret-value \
   --region ap-northeast-2 \
   --query SecretString --output text | jq -r .password
 
-# psql 설치 후 스키마 생성
-psql -h $(terraform output -raw rds_endpoint | cut -d: -f1) \
-     -U ota_admin \
-     -d ota_db \
-     -f scripts/init-db.sql
+# MySQL 클라이언트로 연결 (EC2에서 자동 실행됨)
+mysql -h $(terraform output -raw rds_endpoint | cut -d: -f1) \
+      -u admin \
+      -ppassword \
+      ota_db
 
 # 8. SNS 이메일 구독 승인 (이메일 확인)
 ⚠️ 문제 발생 시 디버깅
@@ -259,7 +265,7 @@ aws logs tail /aws/ec2/ota-server --follow --region ap-northeast-2
 
 # RDS 연결 테스트
 aws rds describe-db-instances \
-  --db-instance-identifier ota-postgres \
+  --db-instance-identifier ota-mysql \
   --region ap-northeast-2
 
 # Security Group 규칙 확인
