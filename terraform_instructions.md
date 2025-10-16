@@ -897,107 +897,61 @@ def send_alert(subject, message):
     )
 
 def lambda_handler(event, context):
-    """Canary 배포 Phase 제어"""
+    """OTA 업데이트 모니터링 및 알림"""
     try:
         conn = connect_db()
         cursor = conn.cursor()
-        
-        # 진행 중인 Canary 배포 조회
+
+        # 최근 실패한 업데이트 조회
         cursor.execute("""
-            SELECT canary_id, deployment_id, phase, 
-                   success_count, fail_count, target_percentage
-            FROM canary_deployments
-            WHERE status = 'in_progress'
+            SELECT update_id, vin, ecu, phase, error, ts
+            FROM reports
+            WHERE phase = 'failed'
+            AND ts > DATE_SUB(NOW(), INTERVAL 1 HOUR)
         """)
-        
-        deployments = cursor.fetchall()
-        
-        for deployment in deployments:
-            canary_id, deployment_id, phase, success, fail, target_pct = deployment
-            
-            total = success + fail
-            if total == 0:
-                continue
-            
-            success_rate = (success / total) * 100
-            
-            print(f"Canary {canary_id}: Phase {phase}, Success Rate: {success_rate}%")
-            
-            # 실패율 > 5% → 배포 중단
-            if success_rate < 95:
-                cursor.execute("""
-                    UPDATE canary_deployments
-                    SET status = 'failed'
-                    WHERE canary_id = %s
-                """, (canary_id,))
-                
-                # Audit log
-                cursor.execute("""
-                    INSERT INTO audit_logs (actor, action, target, result, details)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (
-                    'lambda-canary-controller',
-                    'canary_abort',
-                    f'deployment_{deployment_id}',
-                    'aborted',
-                    f'Phase {phase} 실패율 {100-success_rate:.1f}% 초과'
-                ))
-                
-                conn.commit()
-                
-                # SNS 알림
-                send_alert(
-                    '[OTA Alert] Canary Deployment Failed',
-                    f'배포 ID: {deployment_id}\n'
-                    f'Phase: {phase}\n'
-                    f'성공률: {success_rate:.1f}%\n'
-                    f'배포가 자동 중단되었습니다.'
-                )
-                
-            # 성공률 >= 95% → 다음 Phase로 전환
-            elif success_rate >= 95:
-                next_phase = phase + 1
-                if next_phase <= 3:  # Phase 1, 2, 3
-                    cursor.execute("""
-                        UPDATE canary_deployments
-                        SET phase = %s
-                        WHERE canary_id = %s
-                    """, (next_phase, canary_id))
-                    
-                    # Audit log
-                    cursor.execute("""
-                        INSERT INTO audit_logs (actor, action, target, result, details)
-                        VALUES (%s, %s, %s, %s, %s)
-                    """, (
-                        'lambda-canary-controller',
-                        'canary_phase_transition',
-                        f'deployment_{deployment_id}',
-                        'success',
-                        f'Phase {phase} → Phase {next_phase} 전환'
-                    ))
-                    
-                    conn.commit()
-                    
-                    print(f"Phase {phase} → Phase {next_phase} 전환")
-                else:
-                    # 모든 Phase 완료
-                    cursor.execute("""
-                        UPDATE canary_deployments
-                        SET status = 'completed'
-                        WHERE canary_id = %s
-                    """, (canary_id,))
-                    
-                    conn.commit()
-                    print(f"Deployment {deployment_id} 완료")
-        
+
+        failed_updates = cursor.fetchall()
+
+        # 실패한 업데이트가 있으면 알림 전송
+        if failed_updates:
+            message = "최근 1시간 내 실패한 OTA 업데이트:\n\n"
+            for update in failed_updates:
+                message += f"Update ID: {update['update_id']}\n"
+                message += f"VIN: {update['vin']}\n"
+                message += f"ECU: {update['ecu']}\n"
+                message += f"Phase: {update['phase']}\n"
+                message += f"Error: {update['error']}\n"
+                message += f"Time: {update['ts']}\n"
+                message += "---\n"
+
+            send_alert(
+                '[OTA Alert] Update Failures Detected',
+                message
+            )
+
+        # 진행 중인 업데이트 통계
+        cursor.execute("""
+            SELECT update_id, phase, COUNT(*) as count
+            FROM reports
+            WHERE ts > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            GROUP BY update_id, phase
+        """)
+
+        stats = cursor.fetchall()
+
+        print(f"Update statistics: {json.dumps(stats, default=str)}")
+
         cursor.close()
         conn.close()
-        
+
         return {
             'statusCode': 200,
-            'body': json.dumps('Canary check completed')
+            'body': json.dumps({
+                'failed_count': len(failed_updates),
+                'stats': stats
+            }, default=str)
         }
-        
+
     except Exception as e:
         print(f"Error: {str(e)}")
         return {
