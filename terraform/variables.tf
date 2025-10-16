@@ -51,3 +51,9 @@ variable "certificate_arn" {
   type        = string
   default     = "" # ACM에서 사전 생성 필요
 }
+
+variable "ec2_key_name" {
+  description = "EC2 Key Pair name for SSH access"
+  type        = string
+  default     = "project4"
+}

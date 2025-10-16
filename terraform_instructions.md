@@ -24,7 +24,7 @@ ALB (Public Subnet)
   ↓
 EC2 Auto Scaling (Public Subnet)
   ↓
-RDS PostgreSQL (Private Subnet)
+RDS MySQL (Private Subnet)
 
 EC2 → S3 (Firmware Storage)
 EC2 → Secrets Manager (Credentials)
@@ -219,8 +219,8 @@ egress {
 ### sg-rds
 ```hcl
 ingress {
-  from_port       = 5432
-  to_port         = 5432
+  from_port       = 3306
+  to_port         = 3306
   protocol        = "tcp"
   security_groups = [sg-ec2.id, sg-lambda.id]
 }
@@ -233,8 +233,8 @@ egress {
 ### sg-lambda
 ```hcl
 egress {
-  from_port   = 5432
-  to_port     = 5432
+  from_port   = 3306
+  to_port     = 3306
   protocol    = "tcp"
   security_groups = [sg-rds.id]
 }
@@ -465,18 +465,18 @@ subnet_ids = [private_subnet_a_id, private_subnet_b_id]
 
 ### DB Instance
 ```hcl
-identifier           = "ota-postgres"
-engine               = "postgres"
-engine_version       = "15.4"
-instance_class       = "db.t2.micro"
+identifier           = "ota-mysql"
+engine               = "mysql"
+engine_version       = "8.0.42"
+instance_class       = "db.t3.micro"
 allocated_storage    = 20
 max_allocated_storage = 50
 storage_type         = "gp3"
 storage_encrypted    = true
 
 db_name  = "ota_db"
-username = "ota_admin"
-password = random_password.rds_password.result  # 랜덤 생성
+username = "admin"
+password = "password"  # 고정 credential
 
 multi_az               = false
 publicly_accessible    = false
@@ -487,128 +487,54 @@ backup_retention_period = 3
 backup_window          = "03:00-04:00"
 maintenance_window     = "sun:04:00-sun:05:00"
 
-enabled_cloudwatch_logs_exports = ["postgresql"]
+enabled_cloudwatch_logs_exports = ["error", "general", "slowquery"]
 
 skip_final_snapshot       = false
-final_snapshot_identifier = "ota-postgres-final-snapshot-${timestamp()}"
+final_snapshot_identifier = "ota-mysql-final-snapshot-${timestamp()}"
+
+parameter_group_name = aws_db_parameter_group.ota.name
 
 tags = {
-  Name        = "ota-postgres"
+  Name        = "ota-mysql"
   Environment = "development"
 }
 ```
 
-### 초기 스키마 (Terraform 외부에서 실행)
-`scripts/init-db.sql` 파일 생성:
+### DB Parameter Group
+```hcl
+resource "aws_db_parameter_group" "ota" {
+  name   = "ota-mysql-params"
+  family = "mysql8.0"
+
+  parameter {
+    name  = "character_set_server"
+    value = "utf8mb4"
+  }
+
+  parameter {
+    name  = "collation_server"
+    value = "utf8mb4_unicode_ci"
+  }
+
+  parameter {
+    name  = "max_connections"
+    value = "100"
+  }
+
+  tags = {
+    Name = "ota-mysql-parameter-group"
+  }
+}
+```
+
+### 초기 스키마 (사용자가 직접 생성)
+`scripts/init-db.sql` 파일:
 ```sql
--- vehicles
-CREATE TABLE vehicles (
-    vehicle_id VARCHAR(50) PRIMARY KEY,
-    vin VARCHAR(17) UNIQUE NOT NULL,
-    model VARCHAR(50),
-    current_fw_version VARCHAR(20),
-    last_update TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- OTA Database Schema
+-- MySQL 8.0
+-- Character Set: UTF8MB4
 
--- firmware_metadata
-CREATE TABLE firmware_metadata (
-    firmware_id SERIAL PRIMARY KEY,
-    version VARCHAR(20) UNIQUE NOT NULL,
-    checksum VARCHAR(64) NOT NULL,
-    file_size BIGINT,
-    s3_path VARCHAR(500),
-    signature TEXT,
-    release_date TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- deployment_history
-CREATE TABLE deployment_history (
-    deployment_id SERIAL PRIMARY KEY,
-    firmware_version VARCHAR(20),
-    start_time TIMESTAMP,
-    end_time TIMESTAMP,
-    target_vehicles TEXT,
-    status VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- rollback_history
-CREATE TABLE rollback_history (
-    rollback_id SERIAL PRIMARY KEY,
-    vehicle_id VARCHAR(50),
-    from_version VARCHAR(20),
-    to_version VARCHAR(20),
-    rollback_time TIMESTAMP,
-    reason TEXT
-);
-
--- canary_deployments
-CREATE TABLE canary_deployments (
-    canary_id SERIAL PRIMARY KEY,
-    deployment_id INTEGER REFERENCES deployment_history(deployment_id),
-    phase INTEGER,
-    target_percentage INTEGER,
-    success_count INTEGER DEFAULT 0,
-    fail_count INTEGER DEFAULT 0,
-    status VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- vehicle_groups
-CREATE TABLE vehicle_groups (
-    group_id VARCHAR(50) PRIMARY KEY,
-    group_name VARCHAR(100),
-    vehicle_list TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- director_targets
-CREATE TABLE director_targets (
-    target_id SERIAL PRIMARY KEY,
-    vehicle_id VARCHAR(50),
-    target_version VARCHAR(20),
-    metadata_json TEXT,
-    signature TEXT,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- director_metadata
-CREATE TABLE director_metadata (
-    metadata_id SERIAL PRIMARY KEY,
-    metadata_type VARCHAR(50),
-    content TEXT,
-    signature TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- vehicle_status
-CREATE TABLE vehicle_status (
-    vehicle_id VARCHAR(50) PRIMARY KEY,
-    is_parked BOOLEAN,
-    battery_level INTEGER,
-    network_quality VARCHAR(20),
-    last_heartbeat TIMESTAMP
-);
-
--- audit_logs
-CREATE TABLE audit_logs (
-    log_id SERIAL PRIMARY KEY,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    actor VARCHAR(100),
-    action VARCHAR(100),
-    target VARCHAR(200),
-    result VARCHAR(50),
-    details TEXT
-);
-
--- Indexes
-CREATE INDEX idx_vehicles_vin ON vehicles(vin);
-CREATE INDEX idx_firmware_version ON firmware_metadata(version);
-CREATE INDEX idx_deployment_status ON deployment_history(status);
-CREATE INDEX idx_audit_timestamp ON audit_logs(timestamp);
-CREATE INDEX idx_vehicle_status_heartbeat ON vehicle_status(last_heartbeat);
+-- 사용자가 직접 테이블을 생성할 예정입니다.
 ```
 
 ### 출력값
@@ -936,7 +862,7 @@ tags = {
 ```python
 import json
 import boto3
-import psycopg2
+import pymysql
 import os
 from datetime import datetime
 
@@ -944,7 +870,7 @@ def get_db_credentials():
     """Secrets Manager에서 DB 자격증명 가져오기"""
     secret_name = os.environ['DB_SECRET_NAME']
     region = os.environ['REGION']
-    
+
     client = boto3.client('secretsmanager', region_name=region)
     response = client.get_secret_value(SecretId=secret_name)
     return json.loads(response['SecretString'])
@@ -952,12 +878,13 @@ def get_db_credentials():
 def connect_db():
     """RDS 연결"""
     creds = get_db_credentials()
-    return psycopg2.connect(
+    return pymysql.connect(
         host=creds['host'],
-        port=creds['port'],
+        port=int(creds['port']),
         database=creds['dbname'],
         user=creds['username'],
-        password=creds['password']
+        password=creds['password'],
+        cursorclass=pymysql.cursors.DictCursor
     )
 
 def send_alert(subject, message):
@@ -1102,12 +1029,12 @@ resource "aws_lambda_permission" "allow_eventbridge" {
 }
 ```
 
-### Lambda Layer (psycopg2)
+### Lambda Layer (pymysql)
 ```hcl
-# psycopg2 Layer 생성 (별도로 빌드 필요)
-resource "aws_lambda_layer_version" "psycopg2" {
-  filename   = "psycopg2-layer.zip"  # 사전 빌드 필요
-  layer_name = "psycopg2"
+# pymysql Layer 생성 (별도로 빌드 필요)
+resource "aws_lambda_layer_version" "pymysql" {
+  filename   = "pymysql-layer.zip"  # 사전 빌드 필요
+  layer_name = "pymysql"
 
   compatible_runtimes = ["python3.11"]
 }
@@ -1115,8 +1042,8 @@ resource "aws_lambda_layer_version" "psycopg2" {
 # Lambda Function에 Layer 추가
 resource "aws_lambda_function" "canary" {
   # ... (위 설정)
-  
-  layers = [aws_lambda_layer_version.psycopg2.arn]
+
+  layers = [aws_lambda_layer_version.pymysql.arn]
 }
 ```
 
@@ -1144,7 +1071,7 @@ resource "aws_cloudwatch_log_group" "alb" {
 
 # RDS 로그
 resource "aws_cloudwatch_log_group" "rds" {
-  name              = "/aws/rds/instance/ota-postgres/postgresql"
+  name              = "/aws/rds/instance/ota-mysql/error"
   retention_in_days = 14
 }
 
@@ -1553,9 +1480,9 @@ resource "aws_secretsmanager_secret" "rds_credentials" {
 resource "aws_secretsmanager_secret_version" "rds_credentials" {
   secret_id = aws_secretsmanager_secret.rds_credentials.id
   secret_string = jsonencode({
-    username = "ota_admin"
-    password = random_password.rds.result
-    engine   = "postgres"
+    username = "admin"
+    password = "password"
+    engine   = "mysql"
     host     = var.db_instance_address
     port     = var.db_instance_port
     dbname   = "ota_db"
@@ -1866,10 +1793,10 @@ aws acm request-certificate \
   --validation-method DNS \
   --region ap-northeast-2
 
-# 3. Lambda Layer 빌드 (psycopg2)
+# 3. Lambda Layer 빌드 (pymysql)
 mkdir -p lambda-layer/python
-pip install psycopg2-binary -t lambda-layer/python/
-cd lambda-layer && zip -r ../psycopg2-layer.zip . && cd ..
+pip install pymysql -t lambda-layer/python/
+cd lambda-layer && zip -r ../pymysql-layer.zip . && cd ..
 ```
 
 ### Terraform 배포
@@ -1895,17 +1822,16 @@ terraform show
 # RDS 엔드포인트 확인
 RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
 
+# MySQL 클라이언트 설치 (필요시)
+# sudo yum install -y mysql
+
 # Secrets Manager에서 비밀번호 가져오기
 DB_PASSWORD=$(aws secretsmanager get-secret-value \
   --secret-id ota/rds/credentials \
   --query SecretString --output text | jq -r .password)
 
-# psql로 스키마 생성
-PGPASSWORD=$DB_PASSWORD psql \
-  -h $RDS_ENDPOINT \
-  -U ota_admin \
-  -d ota_db \
-  -f scripts/init-db.sql
+# MySQL로 연결 (사용자가 직접 테이블 생성)
+mysql -h $RDS_ENDPOINT -u admin -p$DB_PASSWORD ota_db
 ```
 
 ### SNS 구독 확인
@@ -1924,11 +1850,7 @@ curl http://$ALB_DNS/health
 aws logs tail /aws/ec2/ota-server --follow
 
 # RDS 접속 테스트
-PGPASSWORD=$DB_PASSWORD psql \
-  -h $RDS_ENDPOINT \
-  -U ota_admin \
-  -d ota_db \
-  -c "SELECT * FROM vehicles LIMIT 1;"
+mysql -h $RDS_ENDPOINT -u admin -p$DB_PASSWORD ota_db -e "SHOW TABLES;"
 ```
 
 ---

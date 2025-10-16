@@ -27,7 +27,7 @@ resource "aws_cloudwatch_log_group" "rds" {
 }
 
 resource "aws_cloudwatch_log_group" "lambda" {
-  name              = "/aws/lambda/canary-controller"
+  name              = "/aws/lambda/canary-phase-controller"
   retention_in_days = 14
 
   tags = {

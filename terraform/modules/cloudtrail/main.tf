@@ -3,7 +3,8 @@ data "aws_caller_identity" "current" {}
 
 # S3 Bucket for CloudTrail Logs
 resource "aws_s3_bucket" "cloudtrail" {
-  bucket = "ota-cloudtrail-logs-${data.aws_caller_identity.current.account_id}"
+  bucket        = "ota-cloudtrail-logs-${data.aws_caller_identity.current.account_id}"
+  force_destroy = true
 
   tags = {
     Name = "ota-cloudtrail-logs"

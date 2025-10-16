@@ -3,7 +3,8 @@ data "aws_caller_identity" "current" {}
 
 # S3 Bucket for Firmware
 resource "aws_s3_bucket" "firmware" {
-  bucket = "ota-firmware-bucket-${data.aws_caller_identity.current.account_id}"
+  bucket        = "ota-firmware-bucket-${data.aws_caller_identity.current.account_id}"
+  force_destroy = true
 
   tags = {
     Name = "ota-firmware-bucket"

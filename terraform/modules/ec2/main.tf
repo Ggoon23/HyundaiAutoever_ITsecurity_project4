@@ -19,6 +19,7 @@ resource "aws_launch_template" "ota" {
   name_prefix   = "ota-server-"
   image_id      = data.aws_ami.amazon_linux_2023.id
   instance_type = "t2.micro"
+  key_name      = var.key_name
 
   iam_instance_profile {
     name = var.instance_profile_name

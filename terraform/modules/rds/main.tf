@@ -18,7 +18,7 @@ resource "aws_db_subnet_group" "ota" {
 resource "aws_db_instance" "ota" {
   identifier           = "ota-mysql"
   engine               = "mysql"
-  engine_version       = "8.0.35"
+  engine_version       = "8.0.42"
   instance_class       = "db.t3.micro"
   allocated_storage    = 20
   max_allocated_storage = 50
@@ -26,8 +26,8 @@ resource "aws_db_instance" "ota" {
   storage_encrypted    = true
 
   db_name  = "ota_db"
-  username = "ota_admin"
-  password = random_password.rds.result
+  username = "admin"
+  password = "password"
 
   multi_az               = false
   publicly_accessible    = false
@@ -40,18 +40,13 @@ resource "aws_db_instance" "ota" {
 
   enabled_cloudwatch_logs_exports = ["error", "general", "slowquery"]
 
-  skip_final_snapshot       = false
-  final_snapshot_identifier = "ota-mysql-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
+  skip_final_snapshot = true
 
   parameter_group_name = aws_db_parameter_group.ota.name
 
   tags = {
     Name        = "ota-mysql"
     Environment = "development"
-  }
-
-  lifecycle {
-    ignore_changes = [final_snapshot_identifier]
   }
 }
 

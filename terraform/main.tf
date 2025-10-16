@@ -22,7 +22,7 @@ terraform {
 
 provider "aws" {
   region = var.region
-
+  profile = "terraform"
   default_tags {
     tags = {
       Project     = "OTA-System"
@@ -108,6 +108,7 @@ module "ec2" {
   target_group_arn      = module.alb.target_group_arn
   db_secret_name        = module.secrets_manager.rds_secret_name
   region                = var.region
+  key_name              = var.ec2_key_name
 }
 
 # Lambda 모듈
