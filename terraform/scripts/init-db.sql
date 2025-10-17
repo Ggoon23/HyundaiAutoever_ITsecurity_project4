@@ -41,22 +41,4 @@ CREATE TABLE IF NOT EXISTS reports (
     error VARCHAR(255),
     client_ip VARCHAR(64)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Create inquiries table (1x INV website contact form)
-CREATE TABLE IF NOT EXISTS inquiries (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    company VARCHAR(200),
-    email VARCHAR(255) NOT NULL,
-    phone VARCHAR(50) NOT NULL,
-    category ENUM('product', 'technical', 'sales', 'partnership', 'other') NOT NULL,
-    subject VARCHAR(255) NOT NULL,
-    message TEXT NOT NULL,
-    image_path VARCHAR(512),
-    status ENUM('pending', 'in_progress', 'completed') DEFAULT 'pending',
-    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    INDEX idx_status (status),
-    INDEX idx_created_at (created_at),
-    INDEX idx_category (category)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
