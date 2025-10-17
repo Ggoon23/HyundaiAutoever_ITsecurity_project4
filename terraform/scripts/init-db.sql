@@ -41,4 +41,3 @@ CREATE TABLE IF NOT EXISTS reports (
     error VARCHAR(255),
     client_ip VARCHAR(64)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
