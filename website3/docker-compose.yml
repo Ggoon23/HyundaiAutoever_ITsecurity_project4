@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  # PHP + Apache 웹 서버 (PyYAML RCE 취약점 포함)
+  web:
+    build: .
+    container_name: 1xinv_web
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+    networks:
+      - ota_network
+
+networks:
+  ota_network:
+    driver: bridge

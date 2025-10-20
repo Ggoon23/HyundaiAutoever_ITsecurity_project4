@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Nginx 리버스 프록시 with ModSecurity WAF
+  nginx:
+    image: owasp/modsecurity-crs:nginx-alpine
+    container_name: 1xinv_nginx_waf
+    ports:
+      - "9000:80"  # 포트 9000으로 변경 (기존 8000과 충돌 방지)
+    volumes:
+      - ./nginx_waf.conf:/etc/nginx/nginx.conf:ro
+      - ./modsecurity_custom.conf:/etc/modsecurity.d/owasp-crs/rules/custom.conf:ro
+    environment:
+      - PARANOIA=1
+      - ANOMALY_INBOUND=5
+      - ANOMALY_OUTBOUND=4
+      - BLOCKING_PARANOIA=1
+    depends_on:
+      - web
+    networks:
+      - ota_network
+
+  # PHP + Apache 웹 서버 (백엔드)
+  web:
+    build: .
+    container_name: 1xinv_web_v2
+    expose:
+      - "80"  # 외부 노출 제거, nginx를 통해서만 접근
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_NAME: ota_db
+      DB_USER: admin
+      DB_PASS: password
+    networks:
+      - ota_network
+
+  # MySQL 데이터베이스
+  db:
+    image: mysql:8.0
+    container_name: 1xinv_db_v2
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3307:3306"  # 포트 3307로 변경 (기존 3306과 충돌 방지)
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ota_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: password
+    volumes:
+      - db_data_v2:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - ota_network
+
+  # phpMyAdmin (DB 관리)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: 1xinv_phpmyadmin_v2
+    ports:
+      - "8081:80"  # 포트 8081로 변경 (기존 8080과 충돌 방지)
+    environment:
+      PMA_HOST: db
+      PMA_USER: admin
+      PMA_PASSWORD: password
+    depends_on:
+      - db
+    networks:
+      - ota_network
+
+networks:
+  ota_network:
+    driver: bridge
+
+volumes:
+  db_data_v2:
