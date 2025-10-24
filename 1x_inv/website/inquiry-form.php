@@ -126,16 +126,8 @@ $lang = isset($_GET['lang']) ? $_GET['lang'] : 'ko';
         </section>
     </main>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 1x INV. All rights reserved.</p>
-            <p>Navigation & OTA Firmware Solutions Provider</p>
-        </div>
-    </footer>
-
     <script>
         const LANG = '<?php echo $lang; ?>';
     </script>
     <script src="js/inquiry.js"></script>
-</body>
-</html>
+<?php include 'footer.php'; ?>

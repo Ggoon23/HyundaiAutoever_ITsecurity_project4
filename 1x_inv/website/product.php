@@ -124,11 +124,4 @@ if (!empty($page)) {
         </section>
     </main>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 1x INV. All rights reserved.</p>
-            <p>Navigation & OTA Firmware Solutions Provider</p>
-        </div>
-    </footer>
-</body>
-</html>
+<?php include 'footer.php'; ?>

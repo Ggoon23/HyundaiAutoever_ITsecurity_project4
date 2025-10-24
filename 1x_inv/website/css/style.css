@@ -787,14 +787,64 @@ header {
 footer {
     background-color: #1a1a2e;
     color: white;
-    text-align: center;
-    padding: 2rem 0;
+    padding: 3rem 0 2rem;
     margin-top: 4rem;
 }
 
-footer p {
-    margin: 0.3rem 0;
-    color: #aaa;
+.footer-tagline {
+    font-size: 1.3rem;
+    color: #fff;
+    margin-bottom: 2rem;
+    font-weight: 600;
+}
+
+.footer-content {
+    display: flex;
+}
+
+.footer-left {
+    flex: 1;
+}
+
+.footer-contact {
+    margin-bottom: 2rem;
+}
+
+.contact-line {
+    font-size: 0.95rem;
+    color: #ccc;
+    margin: 0.6rem 0;
+    line-height: 1.6;
+}
+
+.footer-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.footer-btn {
+    padding: 0.7rem 1.8rem;
+    background-color: transparent;
+    color: #00d4ff;
+    border: 2px solid #00d4ff;
+    border-radius: 5px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.footer-btn:hover {
+    background-color: #00d4ff;
+    color: #1a1a2e;
+}
+
+.footer-company {
+    font-size: 0.85rem;
+    font-weight: 400;
+    margin-top: 1rem;
+    color: #888;
 }
 
 /* Responsive */
