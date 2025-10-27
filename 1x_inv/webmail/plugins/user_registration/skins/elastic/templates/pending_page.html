@@ -1,0 +1,217 @@
+<roundcube:object name="doctype" value="html5" />
+<html>
+<head>
+<title>승인 대기 중 - 1xINV 웹메일</title>
+<roundcube:include file="/includes/links.html" />
+<style>
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 20px;
+}
+
+.pending-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-width: 600px;
+    width: 100%;
+    padding: 40px;
+    text-align: center;
+}
+
+.pending-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+}
+
+.pending-title {
+    color: #FF9800;
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 15px 0;
+}
+
+.pending-message {
+    color: #666;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.user-info {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+.user-info h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.user-info p {
+    margin: 8px 0;
+    color: #666;
+}
+
+.user-info strong {
+    color: #333;
+}
+
+.warning-box {
+    background: #FFF3E0;
+    border-left: 4px solid #FF9800;
+    padding: 15px;
+    margin-bottom: 30px;
+    border-radius: 4px;
+    text-align: left;
+}
+
+.warning-box strong {
+    color: #E65100;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.warning-box ul {
+    margin: 10px 0 0 0;
+    padding-left: 20px;
+    color: #666;
+}
+
+.warning-box li {
+    margin: 5px 0;
+}
+
+.cve-notice {
+    background: #E3F2FD;
+    border-left: 4px solid #2196F3;
+    padding: 15px;
+    margin-bottom: 30px;
+    border-radius: 4px;
+    text-align: left;
+}
+
+.cve-notice strong {
+    color: #1565C0;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.cve-notice p {
+    margin: 5px 0;
+    color: #555;
+    font-size: 14px;
+}
+
+.logout-button {
+    display: inline-block;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+}
+
+.logout-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.company-logo {
+    margin-bottom: 30px;
+}
+
+.company-name {
+    color: #2196F3;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.company-tagline {
+    color: #666;
+    font-size: 12px;
+    margin-top: 5px;
+}
+</style>
+</head>
+<body>
+
+<div class="pending-container">
+    <div class="company-logo">
+        <div class="company-name">1x INV</div>
+        <div class="company-tagline">Navigation & OTA Firmware Solutions</div>
+    </div>
+
+    <div class="pending-icon">⏳</div>
+
+    <h1 class="pending-title">승인 대기 중</h1>
+
+    <p class="pending-message">
+        회원가입이 완료되었으나 아직 인사팀의 승인을 받지 못했습니다.<br>
+        승인 후 모든 웹메일 기능을 사용하실 수 있습니다.
+    </p>
+
+    <?php
+    $rcmail = rcmail::get_instance();
+    if (isset($_SESSION['user_name'])) {
+        echo '<div class="user-info">';
+        echo '<h3>📋 계정 정보</h3>';
+        echo '<p><strong>이름:</strong> ' . htmlspecialchars($_SESSION['user_name']) . '</p>';
+        echo '<p><strong>부서:</strong> ' . htmlspecialchars($_SESSION['user_department']) . '</p>';
+        echo '<p><strong>이메일:</strong> ' . htmlspecialchars($_SESSION['username']) . '</p>';
+        echo '<p><strong>상태:</strong> <span style="color: #FF9800; font-weight: bold;">승인 대기</span></p>';
+        echo '</div>';
+    }
+    ?>
+
+    <div class="warning-box">
+        <strong>⚠️ 현재 사용 가능한 기능</strong>
+        <ul>
+            <li>✅ 로그인 / 로그아웃</li>
+            <li>❌ 메일 확인 (차단)</li>
+            <li>❌ 메일 발송 (차단)</li>
+            <li>❌ 설정 변경 (차단)</li>
+            <li>❌ 파일 업로드 (차단)</li>
+            <li>❌ 주소록 관리 (차단)</li>
+        </ul>
+    </div>
+
+    <div class="cve-notice">
+        <strong>🔒 CVE-2025-49113 테스트 환경</strong>
+        <p>
+            이 시스템은 Roundcube Post-Auth RCE 취약점 테스트를 위해 구축되었습니다.<br>
+            승인 대기 상태에서는 <strong>로그인만 가능</strong>하며, 모든 기능이 차단됩니다.<br>
+            하지만 세션은 유지되므로, 취약점 연구에 활용할 수 있습니다.
+        </p>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <p style="color: #999; font-size: 14px; margin-bottom: 15px;">
+            승인이 필요하신가요? 인사팀(kang.mira@1xinv.com)에게 문의하세요.
+        </p>
+
+        <form method="post" action="./" style="display: inline;">
+            <input type="hidden" name="_task" value="logout" />
+            <input type="hidden" name="_action" value="logout" />
+            <button type="submit" class="logout-button">로그아웃</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

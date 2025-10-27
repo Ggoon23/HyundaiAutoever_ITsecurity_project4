@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120">
+  <defs>
+    <style>
+      .logo-text { font-family: Arial, sans-serif; font-weight: bold; }
+      .logo-1x { fill: #2196F3; font-size: 56px; }
+      .logo-inv { fill: #333333; font-size: 56px; }
+      .logo-tagline { fill: #666666; font-size: 12px; font-weight: normal; }
+      .logo-nav-icon { fill: #2196F3; }
+      .logo-ota-icon { fill: #FF9800; }
+    </style>
+  </defs>
+
+  <!-- Navigation Icon (Pin) -->
+  <circle cx="30" cy="30" r="20" fill="#E3F2FD"/>
+  <path class="logo-nav-icon" d="M30 15 C 22 15, 15 22, 15 30 C 15 40, 30 50, 30 50 C 30 50, 45 40, 45 30 C 45 22, 38 15, 30 15 Z M30 26 C 32.2 26, 34 27.8, 34 30 C 34 32.2, 32.2 34, 30 34 C 27.8 34, 26 32.2, 26 30 C 26 27.8, 27.8 26, 30 26 Z"/>
+
+  <!-- OTA/Firmware Icon (Chip) -->
+  <rect x="10" y="55" width="40" height="40" rx="4" fill="#FFF3E0"/>
+  <path class="logo-ota-icon" d="M20 65 h20 v20 h-20 z M23 70 h4 v2 h-4 z M29 70 h4 v2 h-4 z M23 75 h14 v2 h-14 z M23 80 h4 v2 h-4 z M29 80 h4 v2 h-4 z M23 85 h14 v2 h-14 z"/>
+  <rect class="logo-ota-icon" x="18" y="67" width="2" height="4"/>
+  <rect class="logo-ota-icon" x="36" y="67" width="2" height="4"/>
+  <rect class="logo-ota-icon" x="18" y="83" width="2" height="4"/>
+  <rect class="logo-ota-icon" x="36" y="83" width="2" height="4"/>
+
+  <!-- Company Name -->
+  <text x="70" y="55" class="logo-text logo-1x">1x</text>
+  <text x="145" y="55" class="logo-text logo-inv">INV</text>
+
+  <!-- Tagline -->
+  <text x="70" y="75" class="logo-text logo-tagline">Navigation &amp; OTA Firmware Solutions</text>
+
+  <!-- Email Badge -->
+  <rect x="70" y="85" width="200" height="20" rx="3" fill="#2196F3" opacity="0.1"/>
+  <text x="75" y="98" style="font-family: Arial, sans-serif; font-size: 11px; fill: #2196F3; font-weight: bold;">✉ Webmail System</text>
+</svg>

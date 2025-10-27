@@ -1,0 +1,17 @@
+{
+    "name": "roundcube/user_registration",
+    "description": "User registration plugin with HR approval workflow for 1xINV",
+    "type": "roundcube-plugin",
+    "license": "GPL-3.0-or-later",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "1xINV IT Security Team",
+            "email": "support@1xinv.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.3.0",
+        "roundcube/plugin-installer": ">=0.3.0"
+    }
+}

@@ -1,0 +1,129 @@
+# 1xINV 사내 웹메일 - 내부망 전용 보안 설정
+# Ubuntu Apache2 Configuration
+
+# ==========================================
+# 내부망 IP 접근 제한
+# ==========================================
+<IfModule mod_authz_core.c>
+    # Apache 2.4+
+    <RequireAll>
+        # 내부망 IP 대역만 허용 (회사 네트워크에 맞게 수정 필요)
+        Require ip 10.0.0.0/8
+        Require ip 172.16.0.0/12
+        Require ip 192.168.0.0/16
+        Require ip 127.0.0.1
+        # 특정 대역 추가 예시: Require ip 192.168.1.0/24
+    </RequireAll>
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    # Apache 2.2 호환성
+    Order Deny,Allow
+    Deny from all
+    Allow from 10.0.0.0/8
+    Allow from 172.16.0.0/12
+    Allow from 192.168.0.0/16
+    Allow from 127.0.0.1
+</IfModule>
+
+# ==========================================
+# URL Rewrite 및 보안 규칙
+# ==========================================
+<IfModule mod_rewrite.c>
+Options +SymLinksIfOwnerMatch
+RewriteEngine On
+RewriteRule ^favicon\.ico$ skins/elastic/images/favicon.ico
+
+# installer 디렉토리 완전 차단 (보안 강화)
+RewriteRule ^installer/.* - [F,L]
+
+# 보안 규칙: 특정 파일/디렉토리 접근 차단
+RewriteRule ^(?!\.well-known\/|[a-zA-Z0-9]{16})(\.?[^\.]+)$ - [F]
+RewriteRule ^/?(\.git|\.tx|SQL|bin|config|logs|temp|tests|vendor|program\/(include|lib|localization|steps)) - [F]
+RewriteRule /?(README.*|CHANGELOG.*|SECURITY.*|INSTALL.*|UPGRADING.*|meta\.json|composer\..*|jsdeps.json)$ - [F]
+
+# 숨김 파일 접근 차단
+RewriteRule "(^|/)\." - [F]
+</IfModule>
+
+<IfModule mod_deflate.c>
+SetOutputFilter DEFLATE
+</IfModule>
+
+# prefer to brotli over gzip if brotli is available
+<IfModule mod_brotli.c>
+SetOutputFilter BROTLI_COMPRESS
+# some assets have been compressed, so no need to do it again
+SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|web[pm]|woff2?)$ no-brotli
+</IfModule>
+
+<IfModule mod_expires.c>
+ExpiresActive On
+ExpiresDefault "access plus 1 month"
+</IfModule>
+
+FileETag MTime Size
+
+<IfModule mod_autoindex.c>
+Options -Indexes
+</IfModule>
+
+<IfModule mod_headers.c>
+# 검색 엔진 차단 (내부망 전용)
+Header set X-Robots-Tag "noindex, nofollow"
+
+# 보안 헤더 설정 (내부망 강화)
+# XSS 보호 활성화
+Header set X-XSS-Protection "1; mode=block"
+
+# 클릭재킹 방지
+Header always append X-Frame-Options "SAMEORIGIN"
+
+# MIME 타입 스니핑 방지
+Header set X-Content-Type-Options "nosniff"
+
+# Referrer 정책 (내부 정보 유출 방지)
+Header set Referrer-Policy "same-origin"
+
+# CSP (Content Security Policy) - 내부망 전용 설정
+Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self';"
+
+# PHP 파일 캐시 방지
+<FilesMatch "\.(php)$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+</FilesMatch>
+
+# HTTPS 강제 (필요시 활성화)
+# Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+</IfModule>
+
+# ==========================================
+# 민감한 파일 접근 차단
+# ==========================================
+<FilesMatch "\.(htaccess|htpasswd|ini|log|sh|sql|inc|bak|conf|dist)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ==========================================
+# PHP 보안 설정
+# ==========================================
+<IfModule mod_php7.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_value error_log logs/php_errors.log
+    php_flag expose_php Off
+    php_value session.cookie_httponly 1
+    php_value session.cookie_samesite Strict
+    php_value upload_max_filesize 25M
+    php_value post_max_size 25M
+    php_value memory_limit 128M
+    php_value max_execution_time 300
+</IfModule>

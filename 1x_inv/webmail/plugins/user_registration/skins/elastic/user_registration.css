@@ -1,0 +1,46 @@
+/* User Registration Plugin Styles */
+
+.registration-link-wrapper {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.registration-link {
+    display: inline-block;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white !important;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.registration-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Pending user notice banner */
+.pending-user-notice {
+    background: #FFF3E0;
+    border-left: 4px solid #FF9800;
+    padding: 12px 16px;
+    margin: 10px 0;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #E65100;
+}
+
+/* HR Team menu item */
+.hr-approval-menu {
+    background: #E3F2FD;
+    border-left: 3px solid #2196F3;
+}
+
+.hr-approval-menu a {
+    color: #1565C0 !important;
+    font-weight: 600;
+}

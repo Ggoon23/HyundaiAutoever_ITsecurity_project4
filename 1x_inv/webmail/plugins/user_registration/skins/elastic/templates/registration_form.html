@@ -1,0 +1,240 @@
+<roundcube:object name="doctype" value="html5" />
+<html>
+<head>
+<title><roundcube:object name="pagetitle" /></title>
+<roundcube:include file="/includes/links.html" />
+<style>
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 20px;
+}
+
+.registration-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-width: 500px;
+    width: 100%;
+    padding: 40px;
+}
+
+.registration-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.registration-header h1 {
+    color: #2196F3;
+    font-size: 28px;
+    margin: 0 0 10px 0;
+    font-weight: 700;
+}
+
+.registration-header p {
+    color: #666;
+    margin: 0;
+    font-size: 14px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.form-note {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.form-warning {
+    background: #FFF3E0;
+    border-left: 4px solid #FF9800;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #E65100;
+}
+
+.form-info {
+    background: #E3F2FD;
+    border-left: 4px solid #2196F3;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #1565C0;
+}
+
+.submit-button {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.submit-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.back-to-login {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.back-to-login a {
+    color: #2196F3;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.back-to-login a:hover {
+    text-decoration: underline;
+}
+
+.logo-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.logo-section img {
+    max-width: 200px;
+    height: auto;
+}
+
+.company-name {
+    color: #2196F3;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.company-tagline {
+    color: #666;
+    font-size: 12px;
+}
+</style>
+</head>
+<body>
+
+<div class="registration-container">
+    <div class="logo-section">
+        <div class="company-name">1x INV</div>
+        <div class="company-tagline">Navigation & OTA Firmware Solutions</div>
+    </div>
+
+    <div class="registration-header">
+        <h1>회원가입</h1>
+        <p>1xINV 사내 웹메일 신규 계정 등록</p>
+    </div>
+
+    <div class="form-info">
+        <strong>📝 안내사항</strong><br>
+        • 회원가입 후 인사팀의 승인이 필요합니다<br>
+        • 승인 전에는 로그인만 가능합니다<br>
+        • 전체 기능은 승인 후 사용 가능합니다
+    </div>
+
+    <roundcube:object name="message" id="message" class="boxwarning" />
+
+    <form name="registration-form" method="post" action="./?_task=login&_action=plugin.user_registration_submit">
+
+        <div class="form-group">
+            <label for="rcmloginuser">이메일 주소 *</label>
+            <input type="email" name="_email" id="rcmloginuser"
+                   placeholder="yourname@1xinv.com" required
+                   pattern=".+@1xinv\.com$"
+                   title="1xINV 도메인(@1xinv.com)만 가능합니다">
+            <div class="form-note">반드시 @1xinv.com 도메인을 사용하세요</div>
+        </div>
+
+        <div class="form-group">
+            <label for="rcmloginpwd">비밀번호 *</label>
+            <input type="password" name="_password" id="rcmloginpwd"
+                   placeholder="최소 6자 이상" required minlength="6">
+        </div>
+
+        <div class="form-group">
+            <label for="rcmloginpwd2">비밀번호 확인 *</label>
+            <input type="password" name="_password_confirm" id="rcmloginpwd2"
+                   placeholder="비밀번호를 다시 입력하세요" required>
+        </div>
+
+        <div class="form-group">
+            <label for="rcmname">이름 *</label>
+            <input type="text" name="_name" id="rcmname"
+                   placeholder="홍길동" required>
+        </div>
+
+        <div class="form-group">
+            <label for="rcmdepartment">부서 *</label>
+            <select name="_department" id="rcmdepartment" required>
+                <option value="">-- 부서 선택 --</option>
+                <option value="경영진">경영진</option>
+                <option value="개발팀">개발팀</option>
+                <option value="기획팀">기획팀</option>
+                <option value="영업팀">영업팀</option>
+                <option value="마케팅팀">마케팅팀</option>
+                <option value="기술지원팀">기술지원팀</option>
+                <option value="인사팀">인사팀</option>
+                <option value="재무팀">재무팀</option>
+                <option value="연구개발팀">연구개발팀</option>
+                <option value="고객서비스">고객서비스</option>
+            </select>
+        </div>
+
+        <div class="form-warning">
+            <strong>⚠️ CVE-2025-49113 테스트 환경</strong><br>
+            이 시스템은 보안 교육 목적으로 구축되었습니다.<br>
+            승인 대기 중에는 로그인 상태만 유지되며, 모든 기능이 차단됩니다.
+        </div>
+
+        <button type="submit" class="submit-button">회원가입</button>
+
+        <div class="back-to-login">
+            <a href="./?_task=login">← 로그인 페이지로 돌아가기</a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
