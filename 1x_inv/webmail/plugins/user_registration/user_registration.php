@@ -3,11 +3,6 @@
  * User Registration Plugin
  *
  * 회원가입 시스템 - 인사팀 승인 필요
- * CVE-2025-49113 테스트를 위한 플러그인
- *
- * - 사용자는 자유롭게 회원가입 가능
- * - 로그인은 가능하지만 승인 전까지는 기능 제한 (읽기 전용)
- * - 인사팀(kang.mira@1xinv.com)이 승인해야만 전체 기능 사용 가능
  *
  * @version 1.0
  * @author 1xINV IT Security Team
@@ -420,7 +415,6 @@ class user_registration extends rcube_plugin
     private function is_hr_team()
     {
         $username = $_SESSION['username'];
-        // 인사팀: kang.mira@1xinv.com
         return ($username === 'kang.mira@1xinv.com');
     }
 

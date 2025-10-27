@@ -1,4 +1,4 @@
-# 1xINV 사내 웹메일 - 내부망 전용 보안 설정
+# 1xINV 사내 웹메일
 # Ubuntu Apache2 Configuration
 
 # ==========================================
@@ -7,12 +7,7 @@
 <IfModule mod_authz_core.c>
     # Apache 2.4+
     <RequireAll>
-        # 내부망 IP 대역만 허용 (회사 네트워크에 맞게 수정 필요)
-        Require ip 10.0.0.0/8
-        Require ip 172.16.0.0/12
-        Require ip 192.168.0.0/16
-        Require ip 127.0.0.1
-        # 특정 대역 추가 예시: Require ip 192.168.1.0/24
+        Require all granted
     </RequireAll>
 </IfModule>
 
