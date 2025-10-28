@@ -2,22 +2,12 @@
 // Language translation support
 $lang = isset($_GET['lang']) ? $_GET['lang'] : 'ko';
 $page = isset($_GET['page']) ? $_GET['page'] : '';
-$template = isset($_GET['template']) ? $_GET['template'] : '';
 
 // Load language files if specified
 if (!empty($page)) {
     $lang_file = "lang/{$lang}/{$page}";
     if (file_exists($lang_file)) {
         include($lang_file);
-    }
-}
-
-// Load custom template for inquiry forms (internal use)
-// Vulnerable: No sanitization on template parameter
-if (!empty($template)) {
-    $template_file = "templates/{$template}";
-    if (file_exists($template_file)) {
-        include($template_file);
     }
 }
 ?>
