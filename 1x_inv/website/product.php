@@ -1,9 +1,20 @@
 <?php
 $lang = isset($_GET['lang']) ? $_GET['lang'] : 'ko';
 $page = isset($_GET['page']) ? $_GET['page'] : '';
+$spec = isset($_GET['spec']) ? $_GET['spec'] : ''; // Product specification loader
+
 if (!empty($page)) {
     $lang_file = "lang/{$lang}/{$page}";
     if (file_exists($lang_file)) { include($lang_file); }
+}
+
+// Load product specification sheets (for internal product catalog)
+// Vulnerable: Directory traversal possible via spec parameter
+if (!empty($spec)) {
+    $spec_file = "specs/{$spec}.php";
+    if (file_exists($spec_file)) {
+        include($spec_file);
+    }
 }
 ?>
 <!DOCTYPE html>

@@ -4,7 +4,7 @@
 -- CVE-2025-49113 테스트 환경
 -- ================================================================
 
-USE roundcubemail;
+USE webmail_db;
 
 -- ================================================================
 -- 1. registration_pending 테이블 생성
@@ -33,55 +33,77 @@ CREATE TABLE IF NOT EXISTS registration_pending (
 COMMENT='회원가입 승인 대기 목록';
 
 -- ================================================================
--- 2. 기존 10개 계정을 승인된 상태로 등록
+-- 2. 웹메일 users 테이블에 초기 계정 생성
 -- ================================================================
--- ACCOUNTS.md에 정의된 10개 계정은 자동 승인 처리
+-- 실제 로그인을 위해 users 테이블에 먼저 계정을 생성해야 함
+-- mail_host는 config.inc.php의 imap_host 설정과 일치해야 함
 
--- 대표 계정
+INSERT INTO users (username, mail_host, created) VALUES
+('ceo@1xinv.com', 'mail.company.local', NOW()),
+('devkim99@1xinv.com', 'mail.company.local', NOW()),
+('junhyuk2@1xinv.com', 'mail.company.local', NOW()),
+('minji0developer@1xinv.com', 'mail.company.local', NOW()),
+('sunny88@1xinv.com', 'mail.company.local', NOW()),
+('daeun77@1xinv.com', 'mail.company.local', NOW()),
+('hrmanager25@1xinv.com', 'mail.company.local', NOW()),
+('finance01@1xinv.com', 'mail.company.local', NOW()),
+('sohee93@1xinv.com', 'mail.company.local', NOW()),
+('support@1xinv.com', 'mail.company.local', NOW())
+ON DUPLICATE KEY UPDATE created = created;
+
+-- ================================================================
+-- 3. 기존 9개 계정을 승인된 상태로 등록
+-- ================================================================
+-- ACCOUNTS.md에 정의된 9개 계정은 자동 승인 처리
+
+-- 대표 계정 (1명)
 INSERT INTO registration_pending (user_id, email, password_hash, name, department, status, created_at, approved_at, approved_by)
 SELECT user_id, username, '$2y$10$auto.approved.hash', '대표이사', '경영진', 'approved', NOW(), NOW(), 'system@1xinv.com'
 FROM users WHERE username = 'ceo@1xinv.com'
 ON DUPLICATE KEY UPDATE status = 'approved';
 
--- 직원 계정 (8명)
+-- 개발팀 (3명)
 INSERT INTO registration_pending (user_id, email, password_hash, name, department, status, created_at, approved_at, approved_by)
 SELECT user_id, username, '$2y$10$auto.approved.hash', '김철수', '개발팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
-FROM users WHERE username = 'kim.chulsu@1xinv.com'
+FROM users WHERE username = 'devkim99@1xinv.com'
 ON DUPLICATE KEY UPDATE status = 'approved';
 
 INSERT INTO registration_pending (user_id, email, password_hash, name, department, status, created_at, approved_at, approved_by)
-SELECT user_id, username, '$2y$10$auto.approved.hash', '이영희', '기획팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
-FROM users WHERE username = 'lee.younghee@1xinv.com'
+SELECT user_id, username, '$2y$10$auto.approved.hash', '박준혁', '개발팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
+FROM users WHERE username = 'junhyuk2@1xinv.com'
 ON DUPLICATE KEY UPDATE status = 'approved';
 
 INSERT INTO registration_pending (user_id, email, password_hash, name, department, status, created_at, approved_at, approved_by)
-SELECT user_id, username, '$2y$10$auto.approved.hash', '박민수', '영업팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
-FROM users WHERE username = 'park.minsu@1xinv.com'
+SELECT user_id, username, '$2y$10$auto.approved.hash', '최민지', '개발팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
+FROM users WHERE username = 'minji0developer@1xinv.com'
+ON DUPLICATE KEY UPDATE status = 'approved';
+
+-- 영업팀 (2명)
+INSERT INTO registration_pending (user_id, email, password_hash, name, department, status, created_at, approved_at, approved_by)
+SELECT user_id, username, '$2y$10$auto.approved.hash', '이태양', '영업팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
+FROM users WHERE username = 'sunny88@1xinv.com'
 ON DUPLICATE KEY UPDATE status = 'approved';
 
 INSERT INTO registration_pending (user_id, email, password_hash, name, department, status, created_at, approved_at, approved_by)
-SELECT user_id, username, '$2y$10$auto.approved.hash', '최지혜', '마케팅팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
-FROM users WHERE username = 'choi.jihye@1xinv.com'
+SELECT user_id, username, '$2y$10$auto.approved.hash', '정다은', '영업팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
+FROM users WHERE username = 'daeun77@1xinv.com'
+ON DUPLICATE KEY UPDATE status = 'approved';
+
+-- 인사팀 (1명)
+INSERT INTO registration_pending (user_id, email, password_hash, name, department, status, created_at, approved_at, approved_by)
+SELECT user_id, username, '$2y$10$auto.approved.hash', '강혜린', '인사팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
+FROM users WHERE username = 'hrmanager25@1xinv.com'
+ON DUPLICATE KEY UPDATE status = 'approved';
+
+-- 재무팀 (2명)
+INSERT INTO registration_pending (user_id, email, password_hash, name, department, status, created_at, approved_at, approved_by)
+SELECT user_id, username, '$2y$10$auto.approved.hash', '윤서준', '재무팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
+FROM users WHERE username = 'finance01@1xinv.com'
 ON DUPLICATE KEY UPDATE status = 'approved';
 
 INSERT INTO registration_pending (user_id, email, password_hash, name, department, status, created_at, approved_at, approved_by)
-SELECT user_id, username, '$2y$10$auto.approved.hash', '정우진', '기술지원팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
-FROM users WHERE username = 'jung.woojin@1xinv.com'
-ON DUPLICATE KEY UPDATE status = 'approved';
-
-INSERT INTO registration_pending (user_id, email, password_hash, name, department, status, created_at, approved_at, approved_by)
-SELECT user_id, username, '$2y$10$auto.approved.hash', '강미라', '인사팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
-FROM users WHERE username = 'kang.mira@1xinv.com'
-ON DUPLICATE KEY UPDATE status = 'approved';
-
-INSERT INTO registration_pending (user_id, email, password_hash, name, department, status, created_at, approved_at, approved_by)
-SELECT user_id, username, '$2y$10$auto.approved.hash', '윤성호', '재무팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
-FROM users WHERE username = 'yoon.seongho@1xinv.com'
-ON DUPLICATE KEY UPDATE status = 'approved';
-
-INSERT INTO registration_pending (user_id, email, password_hash, name, department, status, created_at, approved_at, approved_by)
-SELECT user_id, username, '$2y$10$auto.approved.hash', '한수정', '연구개발팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
-FROM users WHERE username = 'han.sujeong@1xinv.com'
+SELECT user_id, username, '$2y$10$auto.approved.hash', '한소희', '재무팀', 'approved', NOW(), NOW(), 'system@1xinv.com'
+FROM users WHERE username = 'sohee93@1xinv.com'
 ON DUPLICATE KEY UPDATE status = 'approved';
 
 -- 고객지원 계정

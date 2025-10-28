@@ -13,7 +13,7 @@ $config = [];
 // 데이터베이스 설정 (Database)
 // ----------------------------------
 // MySQL 데이터베이스 연결 설정
-$config['db_dsnw'] = 'mysql://roundcube:YOUR_DB_PASSWORD@localhost/roundcubemail';
+$config['db_dsnw'] = 'mysql://mailadmin:1xINV!mail2025@localhost/webmail_db';
 
 // 데이터베이스 접두사 (선택사항)
 $config['db_prefix'] = '';

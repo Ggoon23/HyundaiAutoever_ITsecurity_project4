@@ -1,0 +1,53 @@
+# .htaccess for CVE-2024-4577 Vulnerability Testing
+# Windows Server 2019 + Apache + PHP-CGI Configuration
+
+# Enable CGI execution for PHP files
+# This is REQUIRED for CVE-2024-4577 to work
+<IfModule mod_actions.c>
+    # Force PHP files to be processed by PHP-CGI instead of mod_php
+    Action php-cgi /php-cgi
+    AddHandler php-cgi .php
+</IfModule>
+
+# Alternative CGI configuration
+<IfModule !mod_actions.c>
+    # If mod_actions is not available, try this approach
+    AddHandler cgi-script .php
+    Options +ExecCGI
+</IfModule>
+
+# Allow .htaccess to override settings
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Ensure query strings are preserved (important for vulnerability testing)
+    RewriteBase /
+</IfModule>
+
+# Security headers disabled for vulnerability testing
+# WARNING: This configuration is intentionally insecure
+<IfModule mod_headers.c>
+    # Disable security headers to allow exploitation
+    Header unset X-Frame-Options
+    Header unset X-Content-Type-Options
+    Header unset X-XSS-Protection
+    Header unset Content-Security-Policy
+</IfModule>
+
+# Allow directory listing for testing
+Options +Indexes
+
+# PHP CGI Fix Path Info
+# This is part of what makes CVE-2024-4577 possible
+<IfModule mod_fcgid.c>
+    FcgidFixPathinfo 1
+</IfModule>
+
+# Error reporting (useful for debugging)
+# NOTE: php_flag/php_value only work with mod_php, not in all environments
+<IfModule mod_php.c>
+    php_flag display_errors On
+    php_flag display_startup_errors On
+    php_flag allow_url_include On
+    php_flag allow_url_fopen On
+</IfModule>

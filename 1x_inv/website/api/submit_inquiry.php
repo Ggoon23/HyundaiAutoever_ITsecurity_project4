@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Database configuration
 $db_host = getenv('DB_HOST') ?: 'localhost';
 $db_name = getenv('DB_NAME') ?: 'ota_db';
-$db_user = getenv('DB_USER') ?: 'admin';
-$db_pass = getenv('DB_PASS') ?: 'password';
+$db_user = getenv('DB_USER') ?: 'webadmin';
+$db_pass = getenv('DB_PASS') ?: '1xINV!web2025';
 
 // File upload configuration
 $upload_dir = '../uploads/';
