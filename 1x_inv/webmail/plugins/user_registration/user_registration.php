@@ -11,15 +11,15 @@
 
 class user_registration extends rcube_plugin
 {
-    public $task = '?(?!login|logout).*';
+    public $task = 'login|mail|settings|addressbook|dummy';
     private $rc;
 
     public function init()
     {
         $this->rc = rcmail::get_instance();
 
-        // 로그인 폼에 회원가입 링크 추가
-        $this->add_hook('template_object_loginform', array($this, 'add_registration_link'));
+        // 로그인 폼에 회원가입 링크 추가 - 비활성화 (독립 페이지 사용)
+        // $this->add_hook('template_object_loginform', array($this, 'add_registration_link'));
 
         // 회원가입 액션 등록
         $this->register_action('plugin.user_registration', array($this, 'registration_form'));
